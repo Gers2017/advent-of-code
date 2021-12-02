@@ -3,5 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
-  "devDependencies": {}
+  "devDependencies": {
+    "prettier": "^2.5.0"
+  }
 }
