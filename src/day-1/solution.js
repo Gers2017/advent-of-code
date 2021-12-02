@@ -1,5 +1,6 @@
 const input = require("./input");
-const logger = require("../utils/logger");
+const { logger } = require("../utils/index");
+
 /*
   199 (N/A - no previous measurement)
   200 (increased)
@@ -11,20 +12,23 @@ const logger = require("../utils/logger");
   269 (increased)
   260 (decreased)
   263 (increased)
-  result: 7 because 7 measurements are larger then the previous
+  result: 7 because 7 measurements are larger than the previous
 */
 
 function measurements(input) {
-  let times_larger = 0;
+  let times_increased = 0;
   for (let i = 0; i < input.length; i++) {
     const item = input[i];
     const previous = input[i - 1];
     if (i > 0 && item > previous) {
-      times_larger += 1;
+      times_increased++;
     }
   }
-  return times_larger;
+  return times_increased;
 }
+
+const result = measurements(input);
+logger(result);
 
 /*
   199
@@ -58,4 +62,4 @@ function measurements_part2(input) {
   return times_increased;
 }
 
-logger(input, measurements_part2);
+logger(measurements_part2(input));
