@@ -1,12 +1,17 @@
 function logger(result, solutionName = "solution") {
-  console.time(solutionName);
-  console.dir(
-    { result },
-    {
-      depth: null,
-    }
-  );
-  console.timeEnd(solutionName);
+  try {
+    console.time(solutionName);
+    console.dir(
+      { result },
+      {
+        depth: null,
+      }
+    );
+    console.timeEnd(solutionName);
+  } catch (e) {
+    console.error(e);
+    console.timeEnd(solutionName);
+  }
 }
 
 function are_equal(self, other) {
