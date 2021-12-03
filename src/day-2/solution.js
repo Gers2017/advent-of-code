@@ -1,4 +1,4 @@
-const input = require("./input");
+const input = require("./my_input");
 const { logger } = require("../utils/index");
 
 /*
