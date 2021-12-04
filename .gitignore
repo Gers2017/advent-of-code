@@ -1,5 +1,27 @@
-.idea
-node_modules
+/.idea
+/.vscode
+/node_modules/
+/*/node_modules/
+/*/jspm_packages/
+/*/.yarn-integrity
+
+# Private
 *.dev.*
 /*/*.dev.*
-/src/*/my_input.js
+/src/*/*input*.*
+/src/*/__pycache__
+
+# Logs
+/*/logs
+/*/*.log
+/*/npm-debug.log*
+/*/yarn-debug.log*
+/*/yarn-error.log*
+/*/lerna-debug.log*
+/*/.pnpm-debug.log*
+
+
+# Outputs
+/*/.next
+/*/out
+/*/dist
