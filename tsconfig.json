@@ -114,6 +114,5 @@
     "skipLibCheck": true
     /* Skip type checking all .d.ts files. */
   },
-  "exclude": ["node_modules", "src/day-1", "src/day-2", "src/day-3"],
-  "include": ["src/day-4"]
+  "exclude": ["node_modules", "src/day-*"]
 }
