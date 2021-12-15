@@ -29,7 +29,6 @@ DIR_LENGTH = len(DIRS)
 
 def is_lowest_point(x: int, y: int) -> bool:
     point = grid[x][y]
-    row, column, neighbour = 0, 0, 0
 
     for i in range(DIR_LENGTH):
         row = x + DIRS[i][ROW_INDEX]
@@ -84,14 +83,13 @@ class Basin:
 
 
 def traverse_basin(x: int, y: int, basin: Basin):
-    if visited_map[x][y] == True:
+    if visited_map[x][y]:
         return
 
     visited_map[x][y] = True  # already visited
     basin.increase_size()
 
     point = grid[x][y]
-    row, column = 0, 0
 
     for i in range(DIR_LENGTH):
         row = x + DIRS[i][ROW_INDEX]
@@ -106,7 +104,7 @@ def traverse_basin(x: int, y: int, basin: Basin):
 def print_basins():
     for y in range(ROW_LENGTH):
         basins = list(map(lambda n: "#" if n else ".", visited_map[y]))
-        print("".join(basins), sep="")
+        print("".join(basins))
 
 
 print(f"part1 {part1()}")
