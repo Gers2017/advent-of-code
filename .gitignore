@@ -19,10 +19,3 @@
 /*/yarn-error.log*
 /*/lerna-debug.log*
 /*/.pnpm-debug.log*
-
-
-# Outputs
-/*/.next
-out
-/*/out
-/*/dist

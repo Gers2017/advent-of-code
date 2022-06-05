@@ -2,7 +2,6 @@ const { readFileSync } = require("fs");
 const { join } = require("path");
 
 /**
- *
  * @param {string} cwd
  * @param {string} filename
  * @returns {string}
@@ -14,6 +13,7 @@ function readfile(cwd, filename) {
     console.error(e);
   }
 }
+
 /**
  * @param {string} cwd
  * @param {string} filename
@@ -26,6 +26,7 @@ function readfilelines(cwd, filename) {
     console.error(e);
   }
 }
+
 /**
  * @param {string} text
  * @param {RegExp} regex
