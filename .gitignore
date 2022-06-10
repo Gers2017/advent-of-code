@@ -19,3 +19,6 @@
 /*/yarn-error.log*
 /*/lerna-debug.log*
 /*/.pnpm-debug.log*
+
+# Rust
+/*/**/target
