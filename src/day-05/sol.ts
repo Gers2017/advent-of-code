@@ -1,63 +1,70 @@
-import {readFileSync} from "fs";
-import {join} from "path";
+import { get_input } from "../utils/helpers.ts";
 
-const cwd = process.cwd();
-type Segment = { x1: number; y1: number; x2: number; y2: number };
+interface Segment {
+    from: Point;
+    to: Point;
+}
 
-function travel(
-    {from = 0, to, step = 1}: { from?: number; to: number; step?: number },
-    callback?: (current: number) => void
+interface Point {
+    x: number;
+    y: number;
+}
+
+const new_segment = (from: Point, to: Point) => ({ from, to });
+const new_point = (x: number, y: number) => ({ x, y });
+const equals_point = (a: Point, b: Point) => a.x === b.x && a.y === b.y;
+const in_same_axis = (a: Point, b: Point) => a.x === b.x || a.y === b.y;
+
+function direction_to(a: Point, b: Point): Point {
+    const diff = new_point(b.x - a.x, b.y - a.y);
+    const magnitude = Math.sqrt(Math.pow(diff.x, 2) + Math.pow(diff.y, 2));
+    return new_point(
+        Math.round(diff.x / magnitude),
+        Math.round(diff.y / magnitude)
+    );
+}
+
+function on_segment_points(
+    segment: Segment,
+    on_point: (point: Point) => void,
+    only_linear?: boolean
 ) {
-    for (let d = Math.min(from, to); d <= Math.max(from, to); d += step) {
-        callback && callback(d);
+    const { from, to } = segment;
+    if (only_linear && !in_same_axis(from, to)) {
+        return;
+    }
+    const step = direction_to(from, to);
+    const point = new_point(from.x, from.y);
+    on_point(point);
+
+    while (!equals_point(point, to)) {
+        point.x += step.x;
+        point.y += step.y;
+        on_point(point);
     }
 }
 
-function range(from: number, to: number) {
-    let arr = [];
-    if (from <= to) {
-        for (let i = from; i <= to; i++) {
-            arr.push(i);
-        }
-    } else if (from > to) {
-        for (let i = from; i >= to; i--) {
-            arr.push(i);
-        }
-    }
-    return arr;
-}
-
-function count(segments: Segment[], use_diagonal: boolean = false) {
-    let counter: { [key: string]: number } = {};
-
-    const add_counter = (x: number, y: number) => {
-        let key = `${x},${y}`;
-        counter[key] ? (counter[key] += 1) : (counter[key] = 1);
+function solve(segments: Segment[], only_linear?: boolean) {
+    const record: Record<string, number> = {};
+    const insert_or_add = (key: string) => {
+        record[key] ? (record[key] += 1) : (record[key] = 1);
     };
+    segments.forEach((s) => {
+        on_segment_points(
+            s,
+            (point) => insert_or_add(`${point.x},${point.y}`),
+            only_linear
+        );
+    });
 
-    for (const {x1, y1, x2, y2} of segments) {
-        if (y1 === y2 || x1 === x2) {
-            if (y1 === y2) travel({from: x1, to: x2}, (xi) => add_counter(xi, y1));
-            if (x1 === x2) travel({from: y1, to: y2}, (yi) => add_counter(x1, yi));
-        } else if (use_diagonal) {
-            let rangex = range(x1, x2);
-            let rangey = range(y1, y2);
-            for (let k = 0; k <= Math.abs(x1 - x2); k++) {
-                add_counter(rangex[k], rangey[k]);
-            }
-        }
-    }
-    return Object.values(counter).filter((count) => count >= 2).length;
+    const overlaps = Object.values(record).filter((n) => n >= 2).length;
+    console.log(overlaps);
 }
-
-let _text = readFileSync(join(cwd, "test_input.txt"), {encoding: "utf-8"});
-
-let input: Segment[] = _text.split("\n").map((line, i) => {
-    let regex = /^(\d+),(\d+) -> (\d+),(\d+)$/gim;
-    let match = regex.exec(line);
-    if (!match) throw Error(`Invalid line '${line}' at index ${i}`);
-    let [_, x1, y1, x2, y2] = match.map(Number);
-    return {x1, y1, x2, y2};
+const segments = get_input(0).map((line) => {
+    const regex = /^(\d+),(\d+) -> (\d+),(\d+)$/gim;
+    const match = regex.exec(line)!;
+    const [_, x1, y1, x2, y2] = match.map(Number);
+    return new_segment(new_point(x1, y1), new_point(x2, y2));
 });
 
-console.log("part2", count(input, true));
+solve(segments, true);
