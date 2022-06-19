@@ -1,4 +1,9 @@
-export function get_input(is_test: number) {
-    const filename = is_test == 0 ? "input.txt" : "input_test.txt";
+export enum InputMode {
+    Real = 0,
+    Test = 1,
+}
+
+export function get_input(mode: InputMode) {
+    const filename = mode == InputMode.Real ? "input.txt" : "input_test.txt";
     return Deno.readTextFileSync(filename).trimEnd().split("\n");
 }
