@@ -11,7 +11,7 @@ const get_least_common = (count: BitCount) => {
     return count[1] >= count[0] ? 0 : 1;
 };
 
-function get_count(rows: Bit[][], i: number) {
+function get_bit_count(rows: Bit[][], i: number) {
     const count: BitCount = { 0: 0, 1: 0 };
     rows.forEach((row) => {
         count[row[i]] += 1;
@@ -65,8 +65,10 @@ class Diagnostic {
             .map(get_most_common);
         const gamma = bits_to_int(result_bits);
         const epsilon = bits_to_int(invert_bits(result_bits));
-        console.log("gamma", gamma, "epsilon", epsilon);
-        console.log("product", gamma * epsilon);
+        console.log(gamma * epsilon, {
+            gamma,
+            epsilon,
+        });
     }
 
     calculate_oxygen_co2() {
@@ -75,7 +77,7 @@ class Diagnostic {
 
         let i = 0;
         while (oxygen_list.length > 1) {
-            const oxygen_count = get_count(oxygen_list, i);
+            const oxygen_count = get_bit_count(oxygen_list, i);
             const most_common = get_most_common(oxygen_count);
             oxygen_list = oxygen_list.filter((rows) => rows[i] === most_common);
             i++;
@@ -83,7 +85,7 @@ class Diagnostic {
 
         let j = 0;
         while (co2_list.length > 1) {
-            const co2_count = get_count(co2_list, j);
+            const co2_count = get_bit_count(co2_list, j);
             const least_common = get_least_common(co2_count);
             co2_list = co2_list.filter((rows) => rows[j] === least_common);
             j++;
@@ -91,8 +93,10 @@ class Diagnostic {
 
         const oxygen = bits_to_int(oxygen_list[0]);
         const co2 = bits_to_int(co2_list[0]);
-        console.log("oxygen:", oxygen, "co2:", co2);
-        console.log("product:", oxygen * co2);
+        console.log(oxygen * co2, {
+            oxygen,
+            co2,
+        });
     }
 }
 
