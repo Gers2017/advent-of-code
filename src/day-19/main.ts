@@ -1,15 +1,14 @@
 import { get_input_raw, InputMode } from "../utils/helpers.ts";
 import {
     scanner_from_lines,
-    new_transform,
     get_moved_scanners,
     Scanner,
     Vector3,
-    intersect,
     Register,
+    get_transform_from_moved_scanners,
+    find_transform_if_intersects,
+    ScannerSet,
 } from "./lib.ts";
-
-import { range } from "../utils/extensions.ts";
 
 function solution_v1(scanners: Scanner[]) {
     console.time("day-19-v1");
@@ -79,59 +78,68 @@ function solution_v2(scanners: Scanner[]) {
     get_highest_manhattan_distance(found_scanners);
 }
 
-function get_transform_from_moved_scanners(
-    base_scanner: Register,
-    moved_scanners: Scanner[]
-) {
-    for (const moved_scanner of moved_scanners) {
-        const transform = get_transform_overlap(
-            base_scanner.points,
-            moved_scanner
+function solution_v3(scanners: Scanner[], log = false) {
+    const scanner_0 = new ScannerSet("scanner-0", scanners.splice(0, 1)[0]);
+    const scanner_sets = scanners.map(
+        (s, i) => new ScannerSet(`scanner-${i + 1}`, s)
+    );
+
+    console.time("day-19-v3");
+    const closed: ScannerSet[] = [];
+    const closed_ids = new Set<string>();
+    const id_in_closed = (id: string) => closed_ids.has(id);
+    const open = [scanner_0];
+
+    while (open.length > 0) {
+        // evaluating, remove from open
+        const evaluating = open.shift()!;
+        log && console.log({ evaluating: evaluating.id });
+
+        const others = scanner_sets.filter(
+            (it) => !id_in_closed(it.id) && it.id !== evaluating.id
         );
-
-        if (transform) {
-            return transform;
-        }
-    }
-
-    return null;
-}
-
-function get_transform_overlap(base_scanner: Scanner, right_scanner: Scanner) {
-    for (const s1 of base_scanner) {
-        for (const s2 of right_scanner) {
-            const diff = s1.minus(s2);
-            const translated = right_scanner.map((x) => x.plus(diff));
-            const intersection = intersect(translated, base_scanner);
-            if (intersection.length >= 12) {
-                return new_transform(diff, translated);
-            }
-        }
-    }
-
-    return null;
-}
-
-function find_transform_if_intersects(left: Scanner, right: Scanner) {
-    for (const face of range(0, 6)) {
-        for (const rotation of range(0, 4)) {
-            const right_reoriented = right.map((it) =>
-                it.face(face).rotate(rotation)
+        // get all items that are not evaluating and not in closed
+        for (const right of others) {
+            const transform = find_transform_if_intersects(
+                evaluating.scanner,
+                right.scanner
             );
 
-            for (const a of left) {
-                for (const b of right_reoriented) {
-                    const diff = a.minus(b);
-                    const moved = right_reoriented.map((it) => it.plus(diff));
+            if (transform) {
+                open.push(
+                    new ScannerSet(
+                        right.id,
+                        transform.points,
+                        transform.scanner_pos
+                    )
+                );
+                log && console.log("pushing", right.id, "to open set");
+            }
+        }
 
-                    if (intersect(moved, left).length >= 12) {
-                        return new_transform(diff, moved);
-                    }
-                }
+        closed.push(evaluating);
+        closed_ids.add(evaluating.id);
+        log && console.log("---".repeat(12));
+    }
+
+    console.timeEnd("day-19-v3");
+
+    const scanner_positions = closed.map((it) => it.position);
+    console.log("scanners:", scanner_positions.length);
+
+    const seen_beacons = new Set<string>();
+    const beacons = [];
+    for (const scanner_set of closed) {
+        for (const point of scanner_set.scanner) {
+            if (!seen_beacons.has(point.to_string())) {
+                beacons.push(point);
+                seen_beacons.add(point.to_string());
             }
         }
     }
-    return null;
+
+    console.log("beacons:", beacons.length);
+    get_highest_manhattan_distance(scanner_positions);
 }
 
 function get_highest_manhattan_distance(scanner_points: Vector3[]) {
@@ -162,10 +170,11 @@ function get_highest_manhattan_distance(scanner_points: Vector3[]) {
 enum Solution {
     V1,
     V2,
+    V3,
 }
 
 function main(solution: Solution) {
-    const scanners = get_input_raw(InputMode.Real)
+    const scanners = get_input_raw(InputMode.Test)
         .split("\n\n")
         .map((text) => text.split("\n"))
         .map((lines) => scanner_from_lines(lines));
@@ -177,7 +186,9 @@ function main(solution: Solution) {
         case Solution.V2:
             solution_v2(scanners);
             break;
+        case Solution.V3:
+            solution_v3(scanners);
     }
 }
 
-main(Solution.V1);
+main(Solution.V3);

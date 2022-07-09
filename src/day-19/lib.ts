@@ -1,5 +1,4 @@
-import { range, for_range } from "../utils/extensions.ts";
-
+import { range, for_range, first_or_null } from "../utils/extensions.ts";
 export type Scanner = Vector3[];
 
 export class Vector3 {
@@ -151,6 +150,14 @@ export class Register {
     }
 }
 
+export type Transform = { scanner_pos: Vector3; points: Vector3[] };
+
+function new_transform(scanner_pos: Vector3, points: Vector3[]): Transform {
+    return { scanner_pos, points };
+}
+
+/* ---- solution v1 ---- */
+
 export function get_moved_scanners(scanner: Scanner): Scanner[] {
     const moved_scanner = scanner.map((point) =>
         get_24_orientations_of_point(point)
@@ -163,11 +170,74 @@ export function get_moved_scanners(scanner: Scanner): Scanner[] {
     return columns;
 }
 
-export type Transform = { scanner_pos: Vector3; points: Vector3[] };
+export function get_transform_overlap(
+    base_scanner: Scanner,
+    right_scanner: Scanner
+) {
+    return first_or_null(base_scanner, (s1) => {
+        return first_or_null(right_scanner, (s2) => {
+            const diff = s1.minus(s2);
+            const translated = right_scanner.map((x) => x.plus(diff));
+            if (intersect(translated, base_scanner).length >= 12) {
+                return new_transform(diff, translated);
+            }
+            return null;
+        });
+    });
+}
 
-export function new_transform(
-    scanner_pos: Vector3,
-    points: Vector3[]
-): Transform {
-    return { scanner_pos, points };
+export function get_transform_from_moved_scanners(
+    base_scanner: Register,
+    moved_scanners: Scanner[]
+) {
+    for (const moved_scanner of moved_scanners) {
+        const transform = get_transform_overlap(
+            base_scanner.points,
+            moved_scanner
+        );
+
+        if (transform) {
+            return transform;
+        }
+    }
+
+    return null;
+}
+
+/* ---- solution v2 ---- */
+
+export function find_transform_if_intersects(left: Scanner, right: Scanner) {
+    for (const face of range(0, 6)) {
+        for (const rotation of range(0, 4)) {
+            const right_reoriented = right.map((it) =>
+                it.face(face).rotate(rotation)
+            );
+
+            for (const a of left) {
+                for (const b of right_reoriented) {
+                    const diff = a.minus(b);
+                    const moved = right_reoriented.map((it) => it.plus(diff));
+
+                    if (intersect(moved, left).length >= 12) {
+                        return new_transform(diff, moved);
+                    }
+                }
+            }
+        }
+    }
+    return null;
+}
+
+/* ---- solution v3 ---- */
+
+export class ScannerSet {
+    id: string;
+    scanner: Scanner;
+    position: Vector3;
+
+    constructor(id: string, scanner: Scanner, position = Vector3.New(0, 0, 0)) {
+        this.id = id;
+        this.position = position;
+        this.scanner = scanner;
+    }
 }
