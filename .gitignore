@@ -8,8 +8,8 @@
 # Private
 *.dev.*
 /*/*.dev.*
-/src/*/*input*.*
-/src/*/__pycache__
+**/*input*
+**/*/__pycache__
 
 # Logs
 /*/logs
