@@ -10,6 +10,7 @@
 /*/*.dev.*
 **/*input*
 **/*/__pycache__
+**/*/*_bin
 
 # Logs
 /*/logs

@@ -174,7 +174,7 @@ enum Solution {
 }
 
 function main(solution: Solution) {
-    const scanners = get_input_raw(InputMode.Test)
+    const scanners = get_input_raw(InputMode.Real)
         .split("\n\n")
         .map((text) => text.split("\n"))
         .map((lines) => scanner_from_lines(lines));

@@ -1,10 +1,8 @@
-use std::{collections::HashSet, time::Instant};
-pub mod lib;
-use crate::{get_input, InputMode};
-use lib::*;
+use day_19_rs::*;
+use std::{collections::HashSet, fs, time::Instant};
 
-pub fn solution() {
-    let input = get_input(InputMode::Test, 19);
+fn main() {
+    let input = get_input(InputMode::Test);
     let scanners: Vec<Scanner> = input
         .split("\n\n")
         .map(|text| {
@@ -68,6 +66,22 @@ pub fn solution() {
     println!("beacons: {}", beacons.len());
 
     get_highest_manhattan_distance(&scanner_positions);
+}
+
+enum InputMode {
+    #[allow(dead_code)]
+    Real,
+    #[allow(dead_code)]
+    Test,
+}
+
+fn get_input(mode: InputMode) -> String {
+    let filename = match mode {
+        InputMode::Real => "input.txt",
+        InputMode::Test => "input_test.txt",
+    };
+
+    fs::read_to_string(&filename).unwrap()
 }
 
 fn find_transform_if_intersects(left: &Points, right: &Points) -> Option<Transform> {
