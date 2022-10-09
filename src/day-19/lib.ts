@@ -1,12 +1,36 @@
 import { range, for_range, first_or_null } from "../utils/extensions.ts";
+import { get_input_raw, InputMode } from "../utils/helpers.ts";
+
 export type Scanner = Vector3[];
+
+export type Memory = Map<string, Vector3>;
+
+export type SolutionResult = {
+    scanner_positions: Vector3[];
+    beacons: Vector3[];
+};
+
+export type ManhattanResult = { highest: number; a: Vector3; b: Vector3 };
 
 export class Vector3 {
     static New(x: number, y: number, z: number) {
         return new Vector3(x, y, z);
     }
 
+    static zero() {
+        return Vector3.New(0, 0, 0);
+    }
+
     static from_line(line: string) {
+        if (
+            !line.includes(",") ||
+            line.split("").filter((ch) => ch === ",").length !== 2
+        ) {
+            throw new Error(
+                `Missing ',' separator, expected shape: 'x,y,z'. Your input: ${line}`
+            );
+        }
+
         const [x, y, z] = line.split(",").map(Number);
         return Vector3.New(x, y, z);
     }
@@ -76,6 +100,15 @@ export class Vector3 {
     }
 }
 
+export function get_scanner_input(mode: InputMode) {
+    const scanners = get_input_raw(mode)
+        .split("\n\n")
+        .map((text) => text.split("\n"))
+        .map((lines) => scanner_from_lines(lines));
+
+    return scanners;
+}
+
 export function scanner_from_lines(lines: string[]): Scanner {
     return lines
         .filter((line) => !line.startsWith("---") && line.length > 0)
@@ -111,48 +144,48 @@ export function intersect(ls: Vector3[], ls2: Vector3[]) {
 }
 
 export class Register {
-    private _points: Vector3[] = [];
-    private _register: Set<string> = new Set();
+    points: Vector3[] = [];
+    private set: Set<string> = new Set();
+
     constructor(scanner: Scanner) {
         scanner.forEach((point) => {
             this.register_point(point);
         });
     }
 
-    get points() {
-        return this._points;
-    }
-
     has_point(point: Vector3) {
-        return this._register.has(point.to_string());
+        return this.set.has(point.to_string());
     }
 
     private register_point(point: Vector3) {
-        this._register.add(point.to_string());
-        this._points.push(point);
+        this.set.add(point.to_string());
+        this.points.push(point);
     }
 
-    append(point: Vector3) {
+    register(point: Vector3) {
         if (!this.has_point(point)) {
-            point.plus(point);
+            // point.plus(point);
             this.register_point(point);
         }
     }
 
-    add_all_points(points: Vector3[]) {
-        points.forEach((point) => this.append(point));
+    register_all_points(points: Vector3[]) {
+        points.forEach((point) => this.register(point));
     }
 
-    remove(point: Vector3) {
+    unregister(point: Vector3) {
         if (this.has_point(point)) {
-            this._register.delete(point.to_string());
+            this.set.delete(point.to_string());
         }
     }
 }
 
 export type Transform = { scanner_pos: Vector3; points: Vector3[] };
 
-function new_transform(scanner_pos: Vector3, points: Vector3[]): Transform {
+export function new_transform(
+    scanner_pos: Vector3,
+    points: Vector3[]
+): Transform {
     return { scanner_pos, points };
 }
 
@@ -231,13 +264,112 @@ export function find_transform_if_intersects(left: Scanner, right: Scanner) {
 /* ---- solution v3 ---- */
 
 export class ScannerSet {
-    id: string;
-    scanner: Scanner;
-    position: Vector3;
+    constructor(
+        public id: number,
+        public scanner: Scanner,
+        public position: Vector3
+    ) {}
+}
 
-    constructor(id: string, scanner: Scanner, position = Vector3.New(0, 0, 0)) {
-        this.id = id;
-        this.position = position;
-        this.scanner = scanner;
+export function intersect_fs(list_a: Vector3[], list_b: Vector3[]) {
+    const result: Vector3[] = [];
+    for (let i = 0; i < list_a.length; i++) {
+        const a = list_a[i];
+        for (let j = 0; j < list_b.length; j++) {
+            const b = list_b[j];
+            if (a.equals(b)) {
+                result.push(a);
+            }
+        }
     }
+
+    return result;
+}
+
+export function find_transform(left: Scanner, right: Scanner, memory?: Memory) {
+    for (const face of range(0, 6)) {
+        for (const rotation of range(0, 4)) {
+            const new_right = right.map((it) => {
+                const id = it.to_string();
+                if (memory && memory.has(id)) return memory.get(id)!;
+                const n = it.face(face).rotate(rotation);
+                memory && memory.set(id, n);
+                return n;
+            });
+
+            for (const a of left) {
+                for (const b of new_right) {
+                    const diff = a.minus(b);
+                    const moved = new_right.map((it) => it.plus(diff));
+
+                    if (intersect(moved, left).length >= 12) {
+                        return new_transform(diff, moved);
+                    }
+                }
+            }
+        }
+    }
+
+    return null;
+}
+
+/* ---- manhattan distance ---- */
+
+export function get_highest_manhattan_distance(scanner_points: Vector3[]) {
+    let highest = 0;
+    let points = { a: Vector3.New(0, 0, 0), b: Vector3.New(0, 0, 0) };
+    const checked = new Set<string>();
+
+    for (const a of scanner_points) {
+        const to_check = scanner_points.filter(
+            (x) => !checked.has(x.to_string()) && !x.equals(a)
+        );
+
+        for (const b of to_check) {
+            const distance = a.manhattan_distance_to(b);
+            if (distance > highest) {
+                highest = distance;
+                points = { a, b };
+            }
+        }
+
+        checked.add(a.to_string());
+    }
+
+    console.log("From points:", points);
+    console.log("Highest distance is:", highest);
+}
+
+// recursive distance
+export function get_highest_distance(points: Vector3[]) {
+    const result = { a: Vector3.zero(), b: Vector3.zero(), highest: 0 };
+    walk(0, points, result);
+    return result;
+}
+
+export function walk(
+    index: number,
+    values: Vector3[],
+    result: ManhattanResult
+) {
+    // base case
+    if (index === values.length - 1) return;
+
+    // pre
+    const current_point = values[index];
+
+    for (let j = index + 1; j < values.length; j++) {
+        const other = values[j];
+        const d = current_point.manhattan_distance_to(other);
+        if (d > result.highest) {
+            result.highest = d;
+            result.a = current_point;
+            result.b = other;
+        }
+    }
+
+    index++;
+
+    // recurse
+    walk(index, values, result);
 }

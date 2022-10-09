@@ -8,7 +8,8 @@
 # Private
 *.dev.*
 /*/*.dev.*
-**/*input*
+**/*input*.txt
+**/*_test.*
 **/*/__pycache__
 **/*/*_bin
 
