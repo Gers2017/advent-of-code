@@ -1,0 +1,17 @@
+[package]
+name = "rust-days"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+
+[workspace]
+members = ["day-17", "day-19", "day-21"]
+
+# My code
+[profile.dev]
+opt-level = 1
+
+# Not my code
+[profile.dev.package."*"]
+opt-level = 2

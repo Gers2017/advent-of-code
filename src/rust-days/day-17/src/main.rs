@@ -1,8 +1,11 @@
 use std::collections::HashSet;
-use std::{fs, io, num};
+use std::{io, num};
+
+use rust_days::vec2d::Vector2d;
+use rust_days::{get_input_raw, InputMode};
 
 fn main() -> Result<(), Error> {
-    let input = get_input(Mode::File)?;
+    let input = get_input_raw(InputMode::Test).map_err(Error::Input)?;
     println!("Using {}", input);
     let area = Area::new(input)?;
 
@@ -10,7 +13,7 @@ fn main() -> Result<(), Error> {
     let max_x = area.max_x().clone() + 50;
 
     let velocities = (max_y..max_x)
-        .map(move |y| (0..max_x).map(move |x| Vector::new(x, y)))
+        .map(move |y| (0..max_x).map(move |x| Vector2d::new(x, y)))
         .flatten()
         .collect::<Vec<_>>();
 
@@ -27,69 +30,28 @@ fn main() -> Result<(), Error> {
 }
 
 #[derive(Debug)]
-enum Error {
+pub enum Error {
     Input(io::Error),
     ParseArea(num::ParseIntError),
     InvalidArea,
 }
-enum Mode {
-    #[allow(dead_code)]
-    Test,
-    #[allow(dead_code)]
-    File,
-}
-fn get_input(mode: Mode) -> Result<String, Error> {
-    match mode {
-        Mode::Test => Ok("target area: x=20..30, y=-10..-5".to_string()),
-        Mode::File => fs::read_to_string("input.txt").map_err(Error::Input),
-    }
-}
-
-#[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
-struct Vector {
-    x: i16,
-    y: i16,
-}
-
-impl std::fmt::Display for Vector {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "x: {}, y: {}", self.x, self.y)
-    }
-}
-
-impl std::ops::AddAssign for Vector {
-    fn add_assign(&mut self, rhs: Self) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-    }
-}
-
-impl Vector {
-    fn new(x: i16, y: i16) -> Vector {
-        Vector { x, y }
-    }
-
-    fn zero() -> Vector {
-        Vector::new(0, 0)
-    }
-}
 
 struct Probe {
-    position: Vector,
-    velocity: Vector,
+    position: Vector2d,
+    velocity: Vector2d,
 }
 
 impl Probe {
-    fn new(velocity: Vector) -> Probe {
+    fn new(velocity: Vector2d) -> Probe {
         Probe {
-            position: Vector::zero(),
+            position: Vector2d::zero(),
             velocity,
         }
     }
 
-    fn restart(&mut self, velocity: Vector) {
+    fn restart(&mut self, velocity: Vector2d) {
         self.velocity = velocity;
-        self.position = Vector::zero();
+        self.position = Vector2d::zero();
     }
 
     fn apply_velocity(&mut self) {
@@ -113,8 +75,8 @@ impl Probe {
 }
 
 struct Area {
-    start: Vector,
-    end: Vector,
+    start: Vector2d,
+    end: Vector2d,
 }
 
 impl Area {
@@ -139,8 +101,8 @@ impl Area {
         let range_y = &ranges[1];
 
         Ok(Area {
-            start: Vector::new(range_x[0], range_y[0]),
-            end: Vector::new(range_x[1], range_y[1]),
+            start: Vector2d::new(range_x[0], range_y[0]),
+            end: Vector2d::new(range_x[1], range_y[1]),
         })
     }
 
@@ -157,7 +119,7 @@ impl Area {
         self.start.y
     }
 
-    fn contains(&self, point: Vector) -> bool {
+    fn contains(&self, point: Vector2d) -> bool {
         (self.min_x()..=self.max_x()).contains(&point.x)
             && (self.min_y()..=self.max_y()).contains(&point.y)
     }
@@ -167,14 +129,14 @@ struct Launcher {
     probe: Probe,
     area: Area,
     heights: Vec<i16>,
-    velocities: HashSet<Vector>,
+    velocities: HashSet<Vector2d>,
 }
 
 impl Launcher {
     fn new(area: Area) -> Launcher {
         return Launcher {
             area,
-            probe: Probe::new(Vector::zero()),
+            probe: Probe::new(Vector2d::zero()),
             heights: vec![],
             velocities: HashSet::new(),
         };
@@ -188,17 +150,17 @@ impl Launcher {
         return self.velocities.len();
     }
 
-    fn setup(&mut self, velocity: Vector) {
+    fn setup(&mut self, velocity: Vector2d) {
         self.probe.restart(velocity);
     }
 
-    fn is_missing_shot(&self, point: Vector) -> bool {
+    fn is_missing_shot(&self, point: Vector2d) -> bool {
         // below the lowest point
         return point.x > self.area.max_x() || point.y < self.area.min_y();
     }
 
     fn launch(&mut self) {
-        let init: Vector = self.probe.velocity;
+        let init: Vector2d = self.probe.velocity;
         let mut possible_pos: Vec<i16> = vec![];
         // println!("Init: {}", init);
 

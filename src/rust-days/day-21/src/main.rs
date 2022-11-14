@@ -1,22 +1,18 @@
+use rust_days::{get_input_raw, InputMode};
 use std::cmp::Eq;
 use std::collections::HashMap;
-use std::fs;
-use std::ops::Add;
 
-#[allow(dead_code)]
-enum InputType {
-    Real,
-    Test,
+fn main() {
+    let (p1_pos, p2_pos) = get_input(InputMode::Test);
+    solve_1(p1_pos, p2_pos);
+    solve_2(p1_pos, p2_pos);
 }
 
-fn get_input(input_type: InputType) -> (u64, u64) {
-    use InputType::*;
-    let file = match input_type {
-        Real => "input.txt",
-        Test => "input_test.txt",
-    };
+type GameWinRecord = HashMap<Game, WinCounter>;
+type QuantumFrequency = HashMap<usize, u64>;
 
-    let text = fs::read_to_string(file).expect("Couldn't get input!");
+fn get_input(mode: InputMode) -> (u64, u64) {
+    let text = get_input_raw(mode).expect("Couldn't get input!");
     let positions: Vec<u64> = text
         .split("\n")
         .map(|line| -> u64 {
@@ -31,15 +27,6 @@ fn get_input(input_type: InputType) -> (u64, u64) {
         .collect();
 
     return (positions[0], positions[1]);
-}
-
-type GameWinRecord = HashMap<Game, WinCounter>;
-type QuatumFrequency = HashMap<usize, u64>;
-
-fn main() {
-    let (p1_pos, p2_pos) = get_input(InputType::Real);
-    solve_1(p1_pos, p2_pos);
-    solve_2(p1_pos, p2_pos);
 }
 
 fn solve_1(p1_pos: u64, p2_pos: u64) {
@@ -63,11 +50,11 @@ fn solve_1(p1_pos: u64, p2_pos: u64) {
 
 fn solve_2(p1_pos: u64, p2_pos: u64) {
     let mut game_record: GameWinRecord = HashMap::new();
-    let quantum_die_frequency: QuatumFrequency =
+    let quantum_die_frequency: QuantumFrequency =
         HashMap::from([(3, 1), (4, 3), (5, 6), (6, 7), (7, 6), (8, 3), (9, 1)]);
     let game = Game::initiate(p1_pos, p2_pos, 21);
     let wc = play_quantum_dice(game, &mut game_record, &quantum_die_frequency);
-    println!("{}", wc.max());
+    println!("Wins: {}", wc.max());
 }
 
 #[derive(Eq, PartialEq, Hash)]
@@ -158,7 +145,7 @@ impl DeterministicDie {
 fn play_quantum_dice(
     game: Game,
     game_record: &mut GameWinRecord,
-    quantum_die_frequency: &QuatumFrequency,
+    quantum_die_frequency: &QuantumFrequency,
 ) -> WinCounter {
     if game.is_winner() {
         match game.player1.score > game.player2.score {
@@ -214,7 +201,7 @@ impl WinCounter {
     }
 }
 
-impl Add for WinCounter {
+impl std::ops::Add for WinCounter {
     type Output = WinCounter;
     fn add(self, rhs: Self) -> Self::Output {
         WinCounter::with(
