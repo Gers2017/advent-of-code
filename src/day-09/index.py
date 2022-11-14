@@ -1,5 +1,3 @@
-# using bitbucket to escape from github
-# source from https://bitbucket.org/gers2017/aoc21/src/main/day-9/index.py
 from typing import List
 
 debug = False
