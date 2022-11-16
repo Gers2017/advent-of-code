@@ -9,12 +9,16 @@ pub enum InputMode {
     Test,
 }
 
-pub fn get_input(mode: InputMode) -> IOResult<String> {
+pub fn get_input(mode: InputMode) -> IOResult<Vec<String>> {
     let input_raw = get_input_raw(mode);
-    input_raw.map(|x| x.split('\n').map(|x| x.to_string()).collect())
+    input_raw.map(|x| {
+        x.split('\n')
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>()
+    })
 }
 
-pub fn get_input_raw(mode: InputMode) -> Result<String, std::io::Error> {
+pub fn get_input_raw(mode: InputMode) -> IOResult<String> {
     let file = match mode {
         InputMode::Real => "input.txt",
         InputMode::Test => "input_test.txt",

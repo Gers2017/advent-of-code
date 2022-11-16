@@ -24,5 +24,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "day-25"
+version = "0.1.0"
+dependencies = [
+ "rust-days",
+]
+
+[[package]]
 name = "rust-days"
 version = "0.1.0"

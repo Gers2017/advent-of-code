@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 
 [workspace]
-members = ["day-17", "day-19", "day-21"]
+members = ["day-17", "day-19", "day-21", "day-25"]
 
 # My code
 [profile.dev]
