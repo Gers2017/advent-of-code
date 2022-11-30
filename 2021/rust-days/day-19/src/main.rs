@@ -42,8 +42,10 @@ fn main() {
             }
         }
 
-        closed_ids.insert(current.id);
-        closed_sets.push(current);
+        if !closed_ids.contains(&current.id) {
+            closed_ids.insert(current.id);
+            closed_sets.push(current);
+        }
     }
 
     let elapsed = now.elapsed();

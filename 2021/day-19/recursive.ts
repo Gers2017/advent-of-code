@@ -1,22 +1,24 @@
 import {
+    get_scanners,
     ScannerSet,
-    Scanner,
     Vector3,
-    Memory,
-    find_transform,
-    get_highest_distance,
+    find_transform_if_intersects,
+    get_highest_distance_recursive,
 } from "./lib.ts";
-import Queue from "./queue.ts";
+import { InputMode } from "../utils/helpers.ts";
+import Queue from "../utils/queue.ts";
 
-export function solve_recursive(scanners: Scanner[]) {
-    const memory = new Map<string, Vector3>();
+export function solve_recursive(mode: InputMode) {
+    const scanners = get_scanners(mode);
     const pool = scanners.map((s, i) => new ScannerSet(i, s, Vector3.zero()));
     const closed: ScannerSet[] = [];
+    const ignore_indices = new Set<number>();
+
     const open = new Queue<ScannerSet>();
     open.enqueue(pool[0]);
 
     console.time("recursive");
-    iterate(open, pool, [], closed, memory);
+    iterate(open, pool, ignore_indices, closed);
     console.timeEnd("recursive");
 
     const scanner_positions = closed.map((it) => it.position);
@@ -36,16 +38,17 @@ export function solve_recursive(scanners: Scanner[]) {
     console.log("beacons:", beacons.length);
 
     console.time("manhattan distance");
-    get_highest_distance(beacons);
+    const { a, b, highest } = get_highest_distance_recursive(scanner_positions);
+    console.log("Highest distance:", highest);
+    console.log(`From (${a.to_string()}) to (${b.to_string()})`);
     console.timeEnd("manhattan distance");
 }
 
 function iterate(
     open: Queue<ScannerSet>,
     pool: ScannerSet[],
-    ignore_indices: number[],
-    closed: ScannerSet[],
-    memory: Memory
+    ignore_indices: Set<number>,
+    closed: ScannerSet[]
 ) {
     // stop recursion
     if (open.length === 0) return;
@@ -55,10 +58,10 @@ function iterate(
 
     // slice or filter array
     for (let i = 0; i < pool.length; i++) {
-        if (i === s.id || ignore_indices.includes(i)) continue;
+        if (i === s.id || ignore_indices.has(i)) continue;
 
         const other = pool[i];
-        const t = find_transform(s.scanner, other.scanner);
+        const t = find_transform_if_intersects(s.scanner, other.scanner);
 
         if (t) {
             const { points, scanner_pos } = t;
@@ -67,7 +70,12 @@ function iterate(
     }
 
     // register value as seen
-    ignore_indices.push(s.id);
-    closed.push(s);
-    iterate(open, pool, ignore_indices, closed, memory);
+    if (!ignore_indices.has(s.id)) {
+        ignore_indices.add(s.id);
+        closed.push(s);
+    }
+
+    iterate(open, pool, ignore_indices, closed);
 }
+
+solve_recursive(InputMode.Real);
