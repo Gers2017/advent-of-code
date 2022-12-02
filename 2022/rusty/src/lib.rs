@@ -1,7 +1,24 @@
-#[allow(dead_code)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Part {
     One,
     Two,
+}
+
+impl std::fmt::Display for Part {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use Part::*;
+        let name = match self {
+            One => "Part1",
+            Two => "Part2",
+        };
+        write!(f, "{}", name)
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
+pub enum InputMode {
+    Test,
+    Real,
 }
 
 pub struct InputBuilder {
@@ -9,10 +26,19 @@ pub struct InputBuilder {
 }
 
 impl InputBuilder {
-    pub fn new(filename: String) -> Self {
-        let raw_text = std::fs::read_to_string(&filename)
-            .expect(format!("Missing file: {}", &filename).as_str());
-        Self { raw_text }
+    pub fn new(input_mode: InputMode) -> Self {
+        let filename = InputBuilder::get_filename(input_mode);
+        let raw_text = std::fs::read_to_string(&filename).expect("Couldn't read input file");
+        Self {
+            raw_text: raw_text.trim().to_string(),
+        }
+    }
+
+    pub fn get_filename(input_mode: InputMode) -> String {
+        match input_mode {
+            InputMode::Real => String::from("input.txt"),
+            InputMode::Test => String::from("input_test.txt"),
+        }
     }
 
     pub fn raw(&self) -> String {
