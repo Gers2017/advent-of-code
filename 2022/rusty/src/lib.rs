@@ -45,11 +45,12 @@ impl InputBuilder {
         self.raw_text.clone()
     }
 
+    pub fn iter_lines(&self) -> impl Iterator<Item = String> + '_ {
+        self.raw_text.split("\n").map(|it| it.to_string())
+    }
+
     pub fn split_lines(&self) -> Vec<String> {
-        self.raw_text
-            .split("\n")
-            .map(|it| it.to_string())
-            .collect::<Vec<_>>()
+        self.iter_lines().collect()
     }
 
     pub fn split_double_lines(&self) -> Vec<String> {
