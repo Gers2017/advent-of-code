@@ -107,4 +107,4 @@ def print_basins():
 
 print(f"part1 {part1()}")
 print(f"part2 {part2()}")
-print_basins()
+# print_basins()
