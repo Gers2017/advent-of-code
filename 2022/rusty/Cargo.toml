@@ -7,4 +7,4 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [workspace]
-members = ["day-01", "day-02", "day-03", "day-04", "day-05", "day-06"]
+members = ["day-01", "day-02", "day-03", "day-04", "day-05", "day-06", "day-07"]
