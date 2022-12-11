@@ -28,7 +28,10 @@ pub struct InputBuilder {
 impl InputBuilder {
     pub fn new(input_mode: InputMode) -> Self {
         let filename = InputBuilder::get_filename(input_mode);
-        let raw_text = std::fs::read_to_string(&filename).expect("Couldn't read input file");
+        let raw_text = std::fs::read_to_string(&filename)
+            .expect("Couldn't read input file")
+            .trim_end()
+            .to_string();
         Self { raw_text }
     }
 
