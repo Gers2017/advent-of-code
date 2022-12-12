@@ -3,22 +3,20 @@ use std::collections::HashMap;
 type Column = HashMap<usize, Vec<u8>>;
 
 fn main() {
-    let (stack_lines, proc_lines) = match InputBuilder::new(InputMode::Real)
-        .split_double_lines()
-        .as_slice()
-    {
-        [a, b] => (
-            a.lines().map(|it| it.to_string()).collect::<Vec<_>>(),
-            b.trim_end()
-                .lines()
-                .map(|it| it.to_string())
-                .collect::<Vec<_>>(),
-        ),
-        _ => {
-            eprintln!("Invalid input");
-            return;
-        }
-    };
+    let (stack_lines, proc_lines) =
+        match InputBuilder::new(InputMode::Real).double_lines().as_slice() {
+            [a, b] => (
+                a.lines().map(|it| it.to_string()).collect::<Vec<_>>(),
+                b.trim_end()
+                    .lines()
+                    .map(|it| it.to_string())
+                    .collect::<Vec<_>>(),
+            ),
+            _ => {
+                eprintln!("Invalid input");
+                return;
+            }
+        };
 
     let part = Part::Two;
 

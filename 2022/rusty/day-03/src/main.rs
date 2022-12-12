@@ -2,8 +2,7 @@ use rusty::*;
 
 fn main() {
     let input = InputBuilder::new(InputMode::Real)
-        .split_lines()
-        .iter()
+        .lines_iter()
         .map(|line| -> Vec<_> { line.chars().map(|ch| ch.priority()).collect() })
         .collect::<Vec<_>>();
 

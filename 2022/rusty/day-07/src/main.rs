@@ -2,7 +2,7 @@ use day_07::{recreate_filesystem, traverse_dirs};
 use rusty::*;
 
 fn main() {
-    let input = InputBuilder::new(InputMode::Real).split_lines();
+    let input = InputBuilder::new(InputMode::Real).lines();
     let fs = recreate_filesystem(&input);
 
     let mut dir_sizes: Vec<u128> = vec![];

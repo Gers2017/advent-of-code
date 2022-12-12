@@ -5,8 +5,7 @@ type Guide<'a> = &'a [StringTuple];
 
 fn main() {
     let guide = InputBuilder::new(InputMode::Real)
-        .split_lines()
-        .iter()
+        .lines_iter()
         .map(|line| line.split(" ").collect::<Vec<_>>())
         .map(|split| (split[0].to_string(), split[1].to_string()))
         .collect::<Vec<_>>();
@@ -20,16 +19,16 @@ fn solve(guide: Guide<'_>, part: Part) {
         .iter()
         .map(|(a, b)| -> (Move, Move) {
             match part {
-                Part::One => (get_move_by_str(a), get_move_by_str(b)),
+                Part::One => (Move::from_str(a), Move::from_str(b)),
                 Part::Two => {
-                    let opp_move = get_move_by_str(a);
-                    let my_move = get_move_by_strategy(opp_move, b);
+                    let opp_move = Move::from_str(a);
+                    let my_move = Move::from_strategy(b, opp_move);
                     (opp_move, my_move)
                 }
             }
         })
         .map(|(opp_move, my_move)| -> usize {
-            get_move_score(my_move) + get_outcome_score(my_move, opp_move)
+            my_move.get_score() + get_outcome_score(my_move, opp_move)
         })
         .sum();
 
@@ -44,6 +43,32 @@ enum Move {
     Scissors = 3,
 }
 
+impl Move {
+    /// Returns a Move using a string value.
+    /// Valid strings are: A,B,C and X,Y,Z for part 2
+    fn from_str(s: &str) -> Move {
+        match s {
+            "A" | "X" => Move::Rock,
+            "B" | "Y" => Move::Paper,
+            "C" | "Z" => Move::Scissors,
+            _ => panic!("Invalid move {}", &s),
+        }
+    }
+
+    fn from_strategy(s: &str, opp_move: Move) -> Move {
+        match s {
+            "X" => get_loose_move(opp_move), // Loose
+            "Y" => opp_move,                 // Draw
+            "Z" => get_win_move(opp_move),   // Win
+            _ => panic!("Invalid strategy \"{}\"!", &s),
+        }
+    }
+
+    fn get_score(&self) -> usize {
+        *self as usize
+    }
+}
+
 impl std::fmt::Display for Move {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use Move::*;
@@ -54,16 +79,6 @@ impl std::fmt::Display for Move {
         };
 
         write!(f, "{}", name)
-    }
-}
-/// Returns a Move using a string value.
-/// Valid strings are: A,B,C and X,Y,Z for part 2
-fn get_move_by_str(s: &str) -> Move {
-    match s {
-        "A" | "X" => Move::Rock,
-        "B" | "Y" => Move::Paper,
-        "C" | "Z" => Move::Scissors,
-        _ => panic!("Invalid move {}", &s),
     }
 }
 
@@ -83,19 +98,6 @@ fn get_win_move(m: Move) -> Move {
         Paper => Scissors,
         Scissors => Rock,
     }
-}
-
-fn get_move_by_strategy(opp_move: Move, strategy: &str) -> Move {
-    match strategy {
-        "X" => get_loose_move(opp_move), // Loose
-        "Y" => opp_move,                 // Draw
-        "Z" => get_win_move(opp_move),   // Win
-        _ => panic!("Invalid strategy \"{}\"!", &strategy),
-    }
-}
-
-fn get_move_score(m: Move) -> usize {
-    m as usize
 }
 
 fn get_outcome_score(pm: Move, om: Move) -> usize {

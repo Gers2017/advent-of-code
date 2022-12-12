@@ -3,9 +3,8 @@ use rusty::*;
 
 fn main() {
     let input = InputBuilder::new(InputMode::Real)
-        .split_lines()
-        .iter()
-        .map(|line| line_to_range(line.as_str()))
+        .lines_iter()
+        .map(|line| line_to_range(line))
         .collect::<Vec<_>>();
 
     // part 1, full overlap
